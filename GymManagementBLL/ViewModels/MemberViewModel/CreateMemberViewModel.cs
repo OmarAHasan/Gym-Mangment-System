@@ -12,7 +12,7 @@ namespace GymManagementBLL.ViewModels.MemberViewModel
     public class CreateMemberViewModel
     {
         [Required(ErrorMessage ="ProfilePhoto Is Required")]
-        [Display(Name ="Prpfile Photo")]
+        [Display(Name ="Profile Photo")]
         public IFormFile PhotoFile { get; set; } = null!;
         // define valdiation
         [Required(ErrorMessage = "Name Is Requierd")]

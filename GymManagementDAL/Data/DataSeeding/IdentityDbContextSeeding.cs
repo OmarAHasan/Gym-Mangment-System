@@ -53,11 +53,11 @@ namespace GymManagementDAL.Data.DataSeeding
                     var mainAdmin = new ApplicationUser
                     {
 
-                        FirstName = "Mohamed",
-                        LastName = "Hisham",
-                        UserName = "MohamedHisham",
-                        Email = "Mohamed@gmail.com",
-                        PhoneNumber = "01021840100",
+                        FirstName = "Omar",
+                        LastName = "Ahmed",
+                        UserName = "OmarAhmed",
+                        Email = "Omar@gmail.com",
+                        PhoneNumber = "01112223456",
                     };
                     userManager.CreateAsync(mainAdmin, "P@ssw0rd").Wait();
                     userManager.AddToRoleAsync(mainAdmin, "SuperAdmin").Wait();
@@ -66,11 +66,11 @@ namespace GymManagementDAL.Data.DataSeeding
                     var Admin = new ApplicationUser
                     {
 
-                        FirstName = "Ahmed",
-                        LastName = "Ali",
-                        UserName = "AhmedAli",
-                        Email = "Ahmed@gmail.com",
-                        PhoneNumber = "01021840569",
+                        FirstName = "Yasser",
+                        LastName = "Moahmed",
+                        UserName = "YasserMohamed",
+                        Email = "Yaseer@gmail.com",
+                        PhoneNumber = "01010123120",
                     };
                     userManager.CreateAsync(Admin, "P@ssw0rd").Wait();
                     userManager.AddToRoleAsync(Admin, "Admin").Wait();
