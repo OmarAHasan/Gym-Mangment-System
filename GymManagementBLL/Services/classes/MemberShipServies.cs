@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using GymManagementBLL.Helpers;
 using GymManagementBLL.Services.Interfaces;
 using GymManagementBLL.ViewModels.MemberShipViewModel;
+using GymManagementDAL.Data.Context;
 using GymManagementDAL.Data.Repositories.Interfaces;
 using GymManagementDAL.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +17,15 @@ namespace GymManagementBLL.Services.classes
     public class MemberShipServies : IMemberShipServies
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper mapper;
+        private readonly IMapper _mapper;
 
         public MemberShipServies(IUnitOfWork unitOfWork , IMapper mapper) {
-            this._unitOfWork = unitOfWork;
-            this.mapper = mapper;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        }
+        public IEnumerable<MemberShip> GetAll()
+        {
+            return _unitOfWork.MemberShipRepository.GetAll();
         }
         public bool CreateMemberShip(CreateMemberShipViewModel createMemberShipViewModel)
         {
@@ -43,7 +50,7 @@ namespace GymManagementBLL.Services.classes
 
                 if (!plan.IsActive) return false;
 
-                var membership = mapper.Map<MemberShip>(createMemberShipViewModel);
+                var membership = _mapper.Map<MemberShip>(createMemberShipViewModel);
                  membership.EndDate = DateTime.Now.AddDays(plan.DurationDays);
                 _unitOfWork.GetRepository<MemberShip>().Add(membership);
                 return _unitOfWork.SaveChanges() > 0;
@@ -58,13 +65,13 @@ namespace GymManagementBLL.Services.classes
 
         }
 
-        public IEnumerable<MemberShipViewModel> GetAll()
+        public IEnumerable<MemberShipViewModel> Getall()
         {
-            var MemberShips = _unitOfWork.MemberShipRepository.GetMemberShipsWithLodedData();
+            var memberShips = _unitOfWork.MemberShipRepository.GetMemberShipsWithLodedData();
 
-            if (MemberShips is null || !MemberShips.Any()) return [];
+            if (memberShips is null || !memberShips.Any()) return [];
 
-           var membershipviewmodel = mapper.Map<IEnumerable<MemberShipViewModel>>(MemberShips);
+            var membershipviewmodel = _mapper.Map<IEnumerable<MemberShipViewModel>>(memberShips);
             return membershipviewmodel;
 
 
@@ -73,13 +80,13 @@ namespace GymManagementBLL.Services.classes
         public IEnumerable<MemberSelectViewModel> GetMembersFroSelect()
         {
             var members = _unitOfWork.GetRepository<Member>().GetAll();
-            return mapper.Map<IEnumerable<MemberSelectViewModel>>(members);
+            return _mapper.Map<IEnumerable<MemberSelectViewModel>>(members);
         }
 
         public IEnumerable<PlanSelectViewModel> GetPlansForSelect()
         {
             var plans = _unitOfWork.GetRepository<Plan>().GetAll();
-            return mapper.Map<IEnumerable<PlanSelectViewModel>>(plans);
+            return _mapper.Map<IEnumerable<PlanSelectViewModel>>(plans);
         }
 
 
@@ -105,7 +112,63 @@ namespace GymManagementBLL.Services.classes
 
 
         }
+        //private readonly GymDbContext _unitOfWork;
+        //public MemberShipServies(GymDbContext db) { _unitOfWork = db; }
 
- 
+        public async Task<IEnumerable<MemberShip>> GetAllAsync()
+        {
+            return await _unitOfWork.MemberShipRepository.GetAllAsync() ?? Enumerable.Empty<MemberShip>();
+        }
+
+        public async Task<MemberShip?> GetByIdAsync(int id)
+        {
+            return await _unitOfWork.MemberShipRepository.GetByIdAsync(id);
+        }
+
+        public async Task<bool> MemberHasActiveMembershipAsync(int memberId)
+        {
+            var allMemberships = await _unitOfWork.MemberShipRepository.GetAllAsync();
+            return allMemberships.Any(m => m.MemebreId == memberId && m.EndDate > DateTime.UtcNow);
+        }
+
+        public async Task<OperationResult> CreateAsync(int memberId, int planId, DateTime startDate)
+        {
+            var member = await _unitOfWork.GetRepository<Member>().GetByIdAsync(memberId);
+            if (member == null) return OperationResult.Fail("Member not found.");
+
+            var plan = await _unitOfWork.GetRepository<Plan>().GetByIdAsync(planId);
+            if (plan == null) return OperationResult.Fail("Plan not found.");
+            if (!plan.IsActive) return OperationResult.Fail("Plan is not active.");
+
+            if (await MemberHasActiveMembershipAsync(memberId))
+                return OperationResult.Fail("Member already has an active membership.");
+
+            var membership = new MemberShip
+            {
+                MemebreId = memberId,
+                PlanId = planId,
+                CreatedAt = startDate,
+                EndDate = startDate.AddDays(plan.DurationDays)
+            };
+
+            await _unitOfWork.MemberShipRepository.AddAsync(membership);
+            await _unitOfWork.SaveChangesAsync();
+
+            return OperationResult.Ok();
+        }
+
+        public async Task<OperationResult> CancelAsync(int membershipId)
+        {
+            var membership = await _unitOfWork.MemberShipRepository.GetByIdAsync(membershipId);
+            if (membership == null) return OperationResult.Fail("Membership not found.");
+
+            if (membership.EndDate <= DateTime.UtcNow)
+                return OperationResult.Fail("Membership is not active and cannot be cancelled.");
+
+            await _unitOfWork.MemberShipRepository.DeleteAsync(membership);
+            await _unitOfWork.SaveChangesAsync();
+
+            return OperationResult.Ok();
+        }
     }
 }

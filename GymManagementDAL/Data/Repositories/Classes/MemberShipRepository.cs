@@ -19,7 +19,10 @@ namespace GymManagementDAL.Data.Repositories.Classes
             
             this.dbContext = dbContext;
         }
-
+        public IEnumerable<MemberShip> GetAll()
+        {
+            return dbContext.memberShips.ToList();
+        }
         public IEnumerable<MemberShip> GetMemberShipsWithLodedData()
         {
             return dbContext.memberShips

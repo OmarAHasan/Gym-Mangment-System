@@ -1,5 +1,10 @@
-﻿using GymManagementBLL.Services.Interfaces;
+﻿using GymManagementBLL.Services.classes;
+using GymManagementBLL.Services.Interfaces;
+using GymManagementBLL.ViewModels;
 using GymManagementBLL.ViewModels.PlanViewModel;
+using GymManagementDAL.Data.Repositories.Classes;
+using GymManagementDAL.Data.Repositories.Interfaces;
+using GymManagementDAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -105,6 +110,54 @@ namespace GymManagementPL.Controllers
                 TempData["ErrorMessage"] = "Failed To Change Plan Status";
             }
 
+            return RedirectToAction(nameof(Index));
+        }
+        private readonly IMemberShipServies _membershipService;
+        private readonly IPlanRepo _planRepo; 
+        private readonly IMemberRepository _memberRepo; 
+
+        public PlanController(IMemberShipServies membershipService)
+        {
+            _membershipService = membershipService;
+
+        }
+
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.Members = await _membershipService.GetAllAsync();
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(MembershipCreateVm vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Members = await _membershipService.GetAllAsync();
+                ViewBag.Plans = await _planRepo.GetAllActiveAsync();
+                return View(vm);
+            }
+
+            var result = await _membershipService.CreateAsync(vm.MemberId, vm.PlanId, vm.StartDate);
+            if (!result.Success)
+            {
+                ModelState.AddModelError("", result.ErrorMessage);
+                ViewBag.Members = await _membershipService.GetAllAsync();
+                ViewBag.Plans = await _planRepo.GetAllActiveAsync();
+                return View(vm);
+            }
+            TempData["Success"] = "Membership created.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var result = await _membershipService.CancelAsync(id);
+            if (!result.Success) TempData["Error"] = result.ErrorMessage;
+            else TempData["Success"] = "Membership cancelled.";
             return RedirectToAction(nameof(Index));
         }
     }

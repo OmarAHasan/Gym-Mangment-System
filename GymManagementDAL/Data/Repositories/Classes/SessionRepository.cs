@@ -14,26 +14,26 @@ namespace GymManagementDAL.Data.Repositories.Classes
     // specific repo
     public class SessionRepository : GenericRepository<Session>, ISessionRepository
     {
-        private readonly GymDbContext _dbContext;
+        private readonly GymDbContext _unitOfWorkContext;
 
         public SessionRepository(GymDbContext dbContext) : base(dbContext) 
         {
-            _dbContext = dbContext;
+            _unitOfWorkContext = dbContext;
         }
         public int GetCountOfBooking(int sessionid)
         {
-            return _dbContext.MemberSessions.Count(X => X.SessionId == sessionid);
+            return _unitOfWorkContext.MemberSessions.Count(X => X.SessionId == sessionid);
         }
 
         public Session? GetSessionDetailsWithTrainerAndCategory(int sessionid)
         {
-            return _dbContext.Sessions.Include(X => X.Category)
+            return _unitOfWorkContext.Sessions.Include(X => X.Category)
                                               .Include(X => X.SessionTrainer).FirstOrDefault(X => X.Id == sessionid);
         }
 
         public IEnumerable<Session> GetSessionsWithCategoryAndTrainer()
         {
-            return _dbContext.Sessions.Include(X => X.Category)
+            return _unitOfWorkContext.Sessions.Include(X => X.Category)
                                               .Include(X => X.SessionTrainer).ToList();
         }
     }

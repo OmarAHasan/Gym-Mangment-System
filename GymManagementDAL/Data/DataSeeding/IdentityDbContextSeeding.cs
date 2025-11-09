@@ -11,78 +11,61 @@ namespace GymManagementDAL.Data.DataSeeding
     public static class IdentityDbContextSeeding
     {
 
-        public static bool SeedData(RoleManager<IdentityRole> roleManager , UserManager<ApplicationUser> userManager)
+        public static async Task<bool> SeedData(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
             try
             {
+                if (userManager.Users.Any() && roleManager.Roles.Any())
+                    return false;
 
-                // check if tables has data or not 
-
-                var hasuser = userManager.Users.Any();
-                var hasrole = roleManager.Roles.Any();
-                if (hasuser && hasrole) return false;
-
-                if (!hasrole)
+                if (!roleManager.Roles.Any())
                 {
-
-                    var roles = new List<IdentityRole> {
-
-                        new() { Name = "SuperAdmin"},
-                        new() { Name = "Admin"},
-
-                };
+                    var roles = new[] { "SuperAdmin", "Admin" };
 
                     foreach (var role in roles)
                     {
-
-                        if (!roleManager.RoleExistsAsync(role.Name!).Result)
+                        if (!await roleManager.RoleExistsAsync(role))
                         {
-
-                            roleManager.CreateAsync(role).Wait();
-
+                            await roleManager.CreateAsync(new IdentityRole(role));
                         }
                     }
-
                 }
 
-
-                if (!hasuser)
+                if (!userManager.Users.Any())
                 {
-
-
                     var mainAdmin = new ApplicationUser
                     {
-
                         FirstName = "Omar",
                         LastName = "Ahmed",
                         UserName = "OmarAhmed",
                         Email = "Omar@gmail.com",
                         PhoneNumber = "01112223456",
                     };
-                    userManager.CreateAsync(mainAdmin, "P@ssw0rd").Wait();
-                    userManager.AddToRoleAsync(mainAdmin, "SuperAdmin").Wait();
 
+                    await userManager.CreateAsync(mainAdmin, "P@ssw0rd");
+                    await userManager.AddToRoleAsync(mainAdmin, "SuperAdmin");
 
-                    var Admin = new ApplicationUser
+                    var admin = new ApplicationUser
                     {
-
                         FirstName = "Yasser",
                         LastName = "Moahmed",
                         UserName = "YasserMohamed",
                         Email = "Yaseer@gmail.com",
                         PhoneNumber = "01010123120",
                     };
-                    userManager.CreateAsync(Admin, "P@ssw0rd").Wait();
-                    userManager.AddToRoleAsync(Admin, "Admin").Wait();
+
+                    await userManager.CreateAsync(admin, "P@ssw0rd");
+                    await userManager.AddToRoleAsync(admin, "Admin");
                 }
 
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Seed Failed {ex}");
+                Console.WriteLine($"Seed Failed: {ex}");
                 return false;
             }
         }
+
     }
 }

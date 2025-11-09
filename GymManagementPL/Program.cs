@@ -32,17 +32,22 @@ namespace GymManagementPL
             //builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             //builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); 
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<ISessionRepository, SessionRepository>();
             builder.Services.AddAutoMapper(X => X.AddProfile(new MappingProfiles()));
             builder.Services.AddScoped<IMemberServies, MemberServies>();
+            builder.Services.AddScoped<IPlanRepo, PlanRepo>();
+            builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<ITrainerServies, TrainerServies>();
             builder.Services.AddScoped<IPlanServies, PlanServies>();
             builder.Services.AddScoped<ISessionServies, SessionServies>();
             builder.Services.AddScoped<IMemberShipServies, MemberShipServies>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
             builder.Services.AddScoped<IMemberShipRepository, MemberShipRepository>();
             builder.Services.AddScoped<IAttachmentServies, AttachmentServies>();
             builder.Services.AddScoped<IAccountServies, AccountServies>();
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(config =>
             {
                 config.User.RequireUniqueEmail = true;
@@ -55,6 +60,9 @@ namespace GymManagementPL
                 options.AccessDeniedPath = "/Account/AccessDenied";
 
            });
+
+            builder.Services.AddScoped<IMemberShipServies, MemberShipServies>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
 
             #endregion
 

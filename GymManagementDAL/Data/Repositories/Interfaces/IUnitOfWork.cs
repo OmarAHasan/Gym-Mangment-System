@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 
 namespace GymManagementDAL.Data.Repositories.Interfaces
 {
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
-        // create Function To make Repositories
 
-      IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new();
+        IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new();
 
-     int SaveChanges();
+        ISessionRepository SessionRepository { get; }
+        IMemberShipRepository MemberShipRepository { get; }
 
-        public ISessionRepository sessionRepository { get; }
-
-        public IMemberShipRepository MemberShipRepository { get; }
+        int SaveChanges();
+        Task<int> SaveChangesAsync();
     }
 }

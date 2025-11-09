@@ -6,38 +6,39 @@ using System.Collections.Generic;
 
 namespace GymManagementDAL.Data.Repositories.Classes
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly Dictionary<Type, object> _repositories = new();
-        private readonly GymDbContext _dbContext;
+        private readonly GymDbContext _context;
 
-        public UnitOfWork(GymDbContext dbContext, ISessionRepository sessionRepository, IMemberShipRepository memberShipRepository)
+        public UnitOfWork(GymDbContext context,ISessionRepository sessionRepository, IMemberShipRepository memberShipRepository)
         {
-            _dbContext = dbContext;
-            this.sessionRepository = sessionRepository;
-            MemberShipRepository = memberShipRepository;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            SessionRepository = new SessionRepository(_context);
+            MemberShipRepository = new MemberShipRepository(_context);
         }
 
-        public ISessionRepository sessionRepository { get; }
-
-        
-
+        // Entity-specific repositories
+        public ISessionRepository SessionRepository { get; }
         public IMemberShipRepository MemberShipRepository { get; }
 
+        // Generic repository
         public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity, new()
         {
-            var entityType = typeof(TEntity);
-            if (_repositories.TryGetValue(entityType, out var repo))
+            var type = typeof(TEntity);
+            if (_repositories.TryGetValue(type, out var repo))
                 return (IGenericRepository<TEntity>)repo;
 
-            var newRepo = new GenericRepository<TEntity>(_dbContext);
-            _repositories.Add(entityType, newRepo);
+            var newRepo = new GenericRepository<TEntity>(_context);
+            _repositories.Add(type, newRepo);
             return newRepo;
         }
 
-        public int SaveChanges()
-        {
-            return _dbContext.SaveChanges();
-        }
+        public int SaveChanges() => _context.SaveChanges();
+
+        public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
+
+        public void Dispose() => _context.Dispose();
     }
 }
+

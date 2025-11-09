@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using GymManagementBLL.Services.Interfaces;
 using GymManagementPL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,12 @@ namespace GymManagementPL.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IAnalyticsService _analyticsService;
+
+        public HomeController(IAnalyticsService analyticsService)
+        {
+            _analyticsService = analyticsService;
+        }
 
         public HomeController(ILogger<HomeController> logger)
         {

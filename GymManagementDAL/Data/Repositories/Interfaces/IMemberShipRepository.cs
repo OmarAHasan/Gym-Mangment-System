@@ -9,6 +9,8 @@ namespace GymManagementDAL.Data.Repositories.Interfaces
 {
     public interface IMemberShipRepository : IGenericRepository<MemberShip>
     {
+        IEnumerable<MemberShip> GetAll();
+
         IEnumerable<MemberShip> GetMemberShipsWithLodedData();
     }
 }

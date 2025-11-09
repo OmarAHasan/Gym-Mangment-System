@@ -13,6 +13,8 @@ namespace GymManagementDAL.Entities
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
 
         #region Session - Category
 

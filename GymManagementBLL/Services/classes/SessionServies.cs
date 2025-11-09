@@ -56,7 +56,7 @@ namespace GymManagementBLL.Services.classes
         public IEnumerable<SessionViewModel> GetAll()
         {
             // we wanna to load data from navigation property so we can not use get all of genericrepo ..
-            var sessions = _unitOfWork.sessionRepository.GetSessionsWithCategoryAndTrainer();
+            var sessions = _unitOfWork.SessionRepository.GetSessionsWithCategoryAndTrainer();
             if (!sessions.Any()) return [];
 
 
@@ -64,7 +64,7 @@ namespace GymManagementBLL.Services.classes
                 var mappedsessions = _mapper.Map<IEnumerable<Session>, IEnumerable<SessionViewModel>>(sessions);
             foreach (var session in mappedsessions) {
 
-                session.Availableslots = session.Capacity - _unitOfWork.sessionRepository.GetCountOfBooking(session.Id);
+                session.Availableslots = session.Capacity - _unitOfWork.SessionRepository.GetCountOfBooking(session.Id);
 
             }
 
@@ -73,20 +73,20 @@ namespace GymManagementBLL.Services.classes
 
         public SessionViewModel? GetSessionById(int sessionid)
         {
-            var session = _unitOfWork.sessionRepository.GetSessionDetailsWithTrainerAndCategory(sessionid);
+            var session = _unitOfWork.SessionRepository.GetSessionDetailsWithTrainerAndCategory(sessionid);
             if (session is null) return null;
 
 
 
             var mappedsession = _mapper.Map<Session, SessionViewModel>(session);
-            mappedsession.Availableslots = mappedsession.Capacity - _unitOfWork.sessionRepository.GetCountOfBooking(mappedsession.Id);
+            mappedsession.Availableslots = mappedsession.Capacity - _unitOfWork.SessionRepository.GetCountOfBooking(mappedsession.Id);
             return mappedsession;
         }
 
         public SessionUpdateViewModel? GetSessionToUpdate(int sessionid)
         {
             var session = _unitOfWork.GetRepository<Session>().GetById(sessionid);
-            // check if session completed and ongoing and has active booking => no update
+
 
             if (!CheckIfSessionIsAvailableForIpdate(session!)) return null;
 
@@ -178,7 +178,7 @@ namespace GymManagementBLL.Services.classes
 
             // Only future sessions with no bookings
             return session.StartDate > DateTime.Now &&
-                   _unitOfWork.sessionRepository.GetCountOfBooking(session.Id) == 0;
+                   _unitOfWork.SessionRepository.GetCountOfBooking(session.Id) == 0;
 
         }
 
@@ -189,7 +189,7 @@ namespace GymManagementBLL.Services.classes
             var sessioncompleted = session.EndDate < DateTime.Now;
 
             // if session not has active booking
-            var hasnoactivebooking = _unitOfWork.sessionRepository.GetCountOfBooking(session.Id) <= 0;
+            var hasnoactivebooking = _unitOfWork.SessionRepository.GetCountOfBooking(session.Id) <= 0;
 
             return sessioncompleted && hasnoactivebooking;
 
